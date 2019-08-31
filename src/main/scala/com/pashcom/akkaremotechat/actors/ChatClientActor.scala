@@ -26,9 +26,13 @@ class ChatClientActor(chatServer: ActorRef, userName: String, chatBox: TextArea)
   def receive = {
     case Disconnect => chatServer ? Disconnect(userName)
                        context.stop(self)
+
     case body: String => chatServer ! Message(userName, body)
+
     case Message(userName, body, date) => chatBox.append(s"[${Tools.getDateString(date)}] [$userName]: $body" + "\n")
+
     case Connected(userName) => chatBox.append(s"[${Tools.getDateString()}] $userName joined to chat" + "\n")
+
     case Disconnected(userName) => chatBox.append(s"[${Tools.getDateString()}] $userName left chat" + "\n")
   }
 }

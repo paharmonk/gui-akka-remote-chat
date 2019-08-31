@@ -82,10 +82,10 @@ class Gui extends MainFrame {
 
   // server mode commands
   private def startServer: Unit = {
-    val ip = Tools.validateIp(serverServerIP.text)
-    val port = Tools.validatePort(serverServerPort.text)
+    val maybeIp = Tools.validateIp(serverServerIP.text)
+    val maybePort = Tools.validatePort(serverServerPort.text)
 
-    (ip, port) match {
+    (maybeIp, maybePort) match {
       case (Left(ip), Left(port)) =>
         val startingServerFuture = Future {
           val configString = s"""akka.remote.netty.tcp{hostname="$ip",port=$port}"""
@@ -96,14 +96,16 @@ class Gui extends MainFrame {
 
         startingServerFuture.onComplete({
           case Failure(exception) => logBoxServer.append(s"[${Tools.getDateString()}] server start error. $exception" + "\n")
-          case Success(_) => menuModes.enabled = false
-                             startServerButton.enabled = false
-                             stopServerButton.enabled = true
-                             serverServerIP.editable = false
-                             serverServerPort.editable = false
+
+          case Success(_)         => menuModes.enabled = false
+                                     startServerButton.enabled = false
+                                     stopServerButton.enabled = true
+                                     serverServerIP.editable = false
+                                     serverServerPort.editable = false
         })
-      case _ => if (ip.isRight) logBoxServer.append(s"[${Tools.getDateString()}] server start error. ${ip.right.get}" + "\n")
-                if (port.isRight) logBoxServer.append(s"[${Tools.getDateString()}] server start error. ${port.right.get}" + "\n")
+
+      case _ => if (maybeIp.isRight) logBoxServer.append(s"[${Tools.getDateString()}] server start error. ${maybeIp.right.get}" + "\n")
+                if (maybePort.isRight) logBoxServer.append(s"[${Tools.getDateString()}] server start error. ${maybePort.right.get}" + "\n")
     }
   }
 
@@ -128,9 +130,10 @@ class Gui extends MainFrame {
 
     (ipServer, portServer, ipClient, portClient) match {
       case (Left(ipServer), Left(portServer),Left(ipClient), Left(portClient)) => connectToServer(ipServer, portServer, ipClient, portClient)
-      case _ => if (ipServer.isRight) chatBoxClient.append(s"[${Tools.getDateString()}] server start error. ${ipServer.right.get}" + "\n")
+
+      case _ => if (ipServer.isRight)   chatBoxClient.append(s"[${Tools.getDateString()}] server start error. ${ipServer.right.get}" + "\n")
                 if (portServer.isRight) chatBoxClient.append(s"[${Tools.getDateString()}] server start error. ${portServer.right.get}" + "\n")
-                if (ipClient.isRight) chatBoxClient.append(s"[${Tools.getDateString()}] server start error. ${ipClient.right.get}" + "\n")
+                if (ipClient.isRight)   chatBoxClient.append(s"[${Tools.getDateString()}] server start error. ${ipClient.right.get}" + "\n")
                 if (portClient.isRight) chatBoxClient.append(s"[${Tools.getDateString()}] server start error. ${portClient.right.get}" + "\n")
 
     }
@@ -168,6 +171,7 @@ class Gui extends MainFrame {
         case Failure(exception) => chatBoxClient.append(s"[${Tools.getDateString()}] connect error.\n${exception.toString}" + "\n")
       }
     }
+
     connectingToServer.onComplete({
       case Success(_) =>
         menuModes.enabled = false
