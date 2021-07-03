@@ -1,8 +1,8 @@
 package com.pashcom.akkaremotechat
 
-import com.pashcom.akkaremotechat.gui.Gui
+import com.pashcom.akkaremotechat.actors.MySerializable
 
-object ChatServerApplication extends App {
-  val ui = new Gui
-  ui.visible = true
+object ChatApplication extends App with MySerializable {
+  val gui = new GuiFrame(new Server, new Client)
+  gui.visible = true
 }

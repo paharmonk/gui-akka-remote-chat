@@ -1,28 +1,37 @@
 package com.pashcom.akkaremotechat.extra
 
+import cats.data._
+import cats.implicits._
+
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import scala.util.{Failure, Success, Try}
-
 object Tools {
 
-  def getDateString(dateMilisec: Long = System.currentTimeMillis()): String = {
-    val date = new Date(dateMilisec)
+  def akkaRemoteConf(ip: String, port: Int): String = {
+    s"""akka.remote.artery{transport=tcp,canonical.hostname="$ip",canonical.port=$port}"""
+  }
+
+  def getDateString(dateMilliseconds : Long = System.currentTimeMillis): String = {
+    val date = new Date(dateMilliseconds)
     val formatter = new SimpleDateFormat("dd.MM.yy HH:mm:ss")
     formatter.format(date)
   }
 
-  def validateIp(ip: String): Either[String, String] = {
+  private def validateIp(ip: String): ValidatedNel[String, String] = {
     val ipRegex = """^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"""
-    if (ip.matches(ipRegex)) Left(ip)
-    else                     Right("wrong ip")
+
+    if (ip.matches(ipRegex)) ip.validNel
+    else                     "wrong ip".invalidNel
   }
 
-  def validatePort(port: String): Either[Int, String] = {
-    Try { port.toInt } match {
-      case Success(value) => Left(value)
-      case Failure(_)     => Right("wrong port")
-    }
+  private def validatePort(port: String): ValidatedNel[String, Int] = {
+    Validated.catchNonFatal(port.toInt)
+             .leftMap(_ => NonEmptyList.of("wrong port"))
+  }
+
+  def validateIpAndPort(ip: String, port: String): ValidatedNel[String, (String, Int)] = {
+    (validateIp(ip), validatePort(port))
+                                       .mapN((validIp, validPort) => (validIp, validPort))
   }
 }

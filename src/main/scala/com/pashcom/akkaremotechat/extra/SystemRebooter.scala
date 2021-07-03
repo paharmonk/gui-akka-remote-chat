@@ -2,7 +2,7 @@ package com.pashcom.akkaremotechat.extra
 
 object SystemRebooter {
 
-  def reboot = {
+  def reboot(): Unit = {
     val operatingSystem = System.getProperty("os.name").toLowerCase
 
     val shutdownCommand = operatingSystem match {
@@ -10,7 +10,7 @@ object SystemRebooter {
       case x if x.contains("windows")                       => "shutdown.exe -r -t 0"
     }
 
-    if (!shutdownCommand.isEmpty) {
+    if (shutdownCommand.nonEmpty) {
       Runtime.getRuntime.exec(shutdownCommand)
       System.exit(0)
     }
